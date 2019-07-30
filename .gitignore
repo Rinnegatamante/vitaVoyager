@@ -25,3 +25,6 @@ $RECYCLE.BIN/
 *.o
 *.bin
 *.vpk
+*.velf
+*.elf
+*.sfo

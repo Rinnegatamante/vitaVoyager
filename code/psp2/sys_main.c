@@ -435,7 +435,7 @@ void Sys_SigHandler(int signal) {
 main
 =================
 */
-int quake_main (unsigned int argc, void* argv){
+int idtech_main (unsigned int argc, void* argv){
 	int i;
 	
     char commandLine[MAX_STRING_CHARS] = {0};
@@ -449,20 +449,6 @@ int quake_main (unsigned int argc, void* argv){
     Sys_SetBinaryPath(DEFAULT_BASEDIR);
     Sys_SetDefaultInstallPath(DEFAULT_BASEDIR);
 	
-	// Quake III: Team Arena & OpenArena support
-#ifndef OPENARENA
-	sceAppUtilInit(&(SceAppUtilInitParam){}, &(SceAppUtilBootParam){});
-	SceAppUtilAppEventParam eventParam;
-	memset(&eventParam, 0, sizeof(SceAppUtilAppEventParam));
-	sceAppUtilReceiveAppEvent(&eventParam);
-	if (eventParam.type == 0x05){
-		char buffer[2048];
-		memset(buffer, 0, 2048);
-		sceAppUtilAppEventParseLiveArea(&eventParam, buffer);
-		if (strstr(buffer, "open") != NULL) sceAppMgrLoadExec("app0:/openarena.bin", NULL, NULL); 
-		else sprintf(commandLine, "+set fs_game missionpack");
-	}
-#endif
     CON_Init();
     Com_Init(commandLine);
     NET_Init();
@@ -487,8 +473,8 @@ int main(int argc, char **argv) {
 	// Starting input
 	IN_Init(NULL);
 	
-	// We need a bigger stack to run Quake 3, so we create a new thread with a proper stack size
-	SceUID main_thread = sceKernelCreateThread("Quake III", quake_main, 0x40, 0x200000, 0, 0, NULL);
+	// We need a bigger stack to run id Tech 3, so we create a new thread with a proper stack size
+	SceUID main_thread = sceKernelCreateThread("id Tech 3", idtech_main, 0x40, 0x200000, 0, 0, NULL);
 	if (main_thread >= 0){
 		sceKernelStartThread(main_thread, 0, NULL);
 		sceKernelWaitThreadEnd(main_thread, NULL, NULL);
