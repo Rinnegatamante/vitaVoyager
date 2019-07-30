@@ -2923,9 +2923,9 @@ void	R_ShaderList_f (void) {
 	int			i;
 	int			count;
 	shader_t	*shader;
-
+#ifdef PARANOID
 	ri.Printf (PRINT_ALL, "-----------------------\n");
-
+#endif
 	count = 0;
 	for ( i = 0 ; i < tr.numShaders ; i++ ) {
 		if ( ri.Cmd_Argc() > 1 ) {

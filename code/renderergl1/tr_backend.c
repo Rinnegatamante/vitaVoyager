@@ -1115,9 +1115,9 @@ const void	*RB_SwapBuffers( const void *data ) {
 	if ( !glState.finishCalled ) {
 		qglFinish();
 	}
-
+#ifdef PARANOID
 	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
-
+#endif
 	GLimp_EndFrame();
 
 	backEnd.projection2D = qfalse;

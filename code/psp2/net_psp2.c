@@ -95,7 +95,11 @@ static SOCKET	socks_socket = INVALID_SOCKET;
 #endif
 
 // use an admin local address per default so that network admins can decide on how to handle quake3 traffic.
+#ifdef ELITEFORCE
+#define NET_MULTICAST_IP6 "ff04::696f:6566"
+#else
 #define NET_MULTICAST_IP6 "ff04::696f:7175:616b:6533"
+#endif
 
 #define	MAX_IPS		32
 
