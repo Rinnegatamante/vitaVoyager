@@ -2383,6 +2383,19 @@ void Com_ExecuteCfg(void)
 		Cbuf_ExecuteText(EXEC_NOW, "exec autoexec.cfg\n");
 		Cbuf_Execute();
 	}
+	
+	// Setting default keys
+	Cbuf_AddText("bind SELECT \"+scores\"\n");
+	Cbuf_AddText("bind CROSS \"+moveup\"\n");
+	Cbuf_AddText("bind CIRCLE \"+button2\"\n");
+	Cbuf_AddText("bind SQUARE \"+movedown\"\n");
+	Cbuf_AddText("bind TRIANGLE \"weapnext\"\n");
+	Cbuf_AddText("bind LTRIGGER \"+zoom\"\n");
+	Cbuf_AddText("bind RTRIGGER \"+attack\"\n");
+	Cbuf_AddText("bind LANALOG_LEFT \"+moveleft\"\n");
+	Cbuf_AddText("bind LANALOG_RIGHT \"+moveright\"\n");
+	Cbuf_AddText("bind LANALOG_UP \"+forward\"\n");
+	Cbuf_AddText("bind LANALOG_DOWN \"+back\"\n");
 }
 
 /*
@@ -2678,45 +2691,7 @@ Find out whether we have SSE support for Q_ftol function
 =================
 */
 
-#if id386 || idx64
-
-static void Com_DetectSSE(void)
-{
-#if !idx64
-	cpuFeatures_t feat;
-	
-	feat = Sys_GetProcessorFeatures();
-
-	if(feat & CF_SSE)
-	{
-		if(feat & CF_SSE2)
-			Q_SnapVector = qsnapvectorsse;
-		else
-			Q_SnapVector = qsnapvectorx87;
-
-		Q_ftol = qftolsse;
-#endif
-		Q_VMftol = qvmftolsse;
-
-		Com_Printf("SSE instruction set enabled\n");
-#if !idx64
-	}
-	else
-	{
-		Q_ftol = qftolx87;
-		Q_VMftol = qvmftolx87;
-		Q_SnapVector = qsnapvectorx87;
-
-		Com_Printf("SSE instruction set not available\n");
-	}
-#endif
-}
-
-#else
-
 #define Com_DetectSSE()
-
-#endif
 
 /*
 =================
@@ -3196,13 +3171,13 @@ void Com_Frame( void ) {
 			minMsec = SV_FrameMsec();
 		else
 		{
-			if(com_minimized->integer && com_maxfpsMinimized->integer > 0)
+			/*if(com_minimized->integer && com_maxfpsMinimized->integer > 0)
 				minMsec = 1000 / com_maxfpsMinimized->integer;
 			else if(com_unfocused->integer && com_maxfpsUnfocused->integer > 0)
 				minMsec = 1000 / com_maxfpsUnfocused->integer;
 			else if(com_maxfps->integer > 0)
 				minMsec = 1000 / com_maxfps->integer;
-			else
+			else*/
 				minMsec = 1;
 			
 			timeVal = com_frameTime - lastTime;

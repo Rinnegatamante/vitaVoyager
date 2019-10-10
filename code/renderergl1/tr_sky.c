@@ -366,7 +366,10 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 	int s, t;
 
 	GL_Bind( image );
-
+#ifdef URBANTERROR
+	qglDisableClientState(GL_COLOR_ARRAY);
+#endif
+	qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	for ( t = mins[1]+HALF_SKY_SUBDIVISIONS; t < maxs[1]+HALF_SKY_SUBDIVISIONS; t++ )
 	{
 		float *texcoord = gTexCoordBuffer;
@@ -388,6 +391,10 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 		vglTexCoordPointerMapped(texcoord);
 		vglDrawObjects(GL_TRIANGLE_STRIP, numindices, GL_TRUE);
 	}
+	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#ifdef URBANTERROR	
+	qglEnableClientState(GL_COLOR_ARRAY);
+#endif
 }
 
 static void DrawSkyBox( shader_t *shader )
@@ -771,7 +778,7 @@ void RB_StageIteratorSky( void ) {
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
-		qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
+		qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1 );
 		
 		qglPushMatrix ();
 		GL_State( 0 );

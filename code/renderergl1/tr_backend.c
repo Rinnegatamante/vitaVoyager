@@ -40,7 +40,7 @@ static float	s_flipMatrix[16] = {
 */
 void GL_Bind( image_t *image ) {
 	int texnum;
-
+	
 	if ( !image ) {
 		ri.Printf( PRINT_WARNING, "GL_Bind: NULL image\n" );
 		texnum = tr.defaultImage->texnum;
@@ -90,35 +90,6 @@ void GL_SelectTexture( int unit )
 
 	glState.currenttmu = unit;
 }
-
-
-/*
-** GL_BindMultitexture
-*/
-void GL_BindMultitexture( image_t *image0, GLuint env0, image_t *image1, GLuint env1 ) {
-	int		texnum0, texnum1;
-
-	texnum0 = image0->texnum;
-	texnum1 = image1->texnum;
-
-	if ( r_nobind->integer && tr.dlightImage ) {		// performance evaluation option
-		texnum0 = texnum1 = tr.dlightImage->texnum;
-	}
-
-	if ( glState.currenttextures[1] != texnum1 ) {
-		GL_SelectTexture( 1 );
-		image1->frameUsed = tr.frameCount;
-		glState.currenttextures[1] = texnum1;
-		qglBindTexture( GL_TEXTURE_2D, texnum1 );
-	}
-	if ( glState.currenttextures[0] != texnum0 ) {
-		GL_SelectTexture( 0 );
-		image0->frameUsed = tr.frameCount;
-		glState.currenttextures[0] = texnum0;
-		qglBindTexture( GL_TEXTURE_2D, texnum0 );
-	}
-}
-
 
 /*
 ** GL_Cull
@@ -494,12 +465,10 @@ void RB_BeginDrawingView (void) {
 		plane2[3] = DotProduct (plane, backEnd.viewParms.or.origin) - plane[3];
 
 		qglLoadMatrixf( s_flipMatrix );
-#ifndef __PSP2__
 		qglClipPlane (GL_CLIP_PLANE0, plane2);
 		qglEnable (GL_CLIP_PLANE0);
 	} else {
 		qglDisable (GL_CLIP_PLANE0);
-#endif
 	}
 }
 
@@ -711,19 +680,17 @@ void	RB_SetGL2D (void) {
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglMatrixMode(GL_PROJECTION);
-    qglLoadIdentity ();
+	qglLoadIdentity ();
 	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
 	qglMatrixMode(GL_MODELVIEW);
-    qglLoadIdentity ();
+	qglLoadIdentity ();
 
 	GL_State( GLS_DEPTHTEST_DISABLE |
 			  GLS_SRCBLEND_SRC_ALPHA |
 			  GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
 
 	GL_Cull( CT_TWO_SIDED );
-#ifndef __PSP2__
 	qglDisable( GL_CLIP_PLANE0 );
-#endif
 
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds();
@@ -769,8 +736,9 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	if ( ( 1 << i ) != cols || ( 1 << j ) != rows) {
 		ri.Error (ERR_DROP, "Draw_StretchRaw: size not a power of 2: %i by %i", cols, rows);
 	}
-
+	
 	RE_UploadCinematic (w, h, cols, rows, data, client, dirty);
+
 	GL_Bind( tr.scratchImage[client] );
 
 	if ( r_speeds->integer ) {
@@ -780,7 +748,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	RB_SetGL2D();
 	
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	
 	float texcoords[] = {
 		0.5f / cols,  0.5f / rows,
@@ -794,11 +762,12 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		x+w, y+h, 0.0f,
 		x, y+h, 0.0f
 	};
-	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
-
+	qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1 );
+	
 	vglVertexPointer(3, GL_FLOAT, 0, 4, vertices);
 	vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoords);
 	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+	
 }
 
 void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
@@ -812,8 +781,8 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );	
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );	
 	} else {
 		if (dirty) {
 			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
@@ -955,10 +924,6 @@ const void	*RB_DrawBuffer( const void *data ) {
 
 	cmd = (const drawBufferCommand_t *)data;
 
-#ifndef __PSP2__
-	qglDrawBuffer( cmd->buffer );
-#endif
-
 	// clear screen for debugging
 	if ( r_clear->integer ) {
 		qglClearColor( 1, 0, 0.5, 1 );
@@ -1010,8 +975,8 @@ void RB_ShowImages( void ) {
 
 		GL_Bind( image );
 		
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		
+		qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	
 		float texcoord[] = {
 			0, 0, 1, 0, 1, 1, 0, 1
 		};
@@ -1025,6 +990,7 @@ void RB_ShowImages( void ) {
 		vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
 		vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoord);
 		vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+		
 	}
 
 	qglFinish();
@@ -1043,9 +1009,7 @@ RB_ColorMask
 const void *RB_ColorMask(const void *data)
 {
 	const colorMaskCommand_t *cmd = data;
-	
 	qglColorMask(cmd->rgba[0], cmd->rgba[1], cmd->rgba[2], cmd->rgba[3]);
-	
 	return (const void *)(cmd + 1);
 }
 
@@ -1092,32 +1056,12 @@ const void	*RB_SwapBuffers( const void *data ) {
 
 	cmd = (const swapBuffersCommand_t *)data;
 
-	// we measure overdraw by reading back the stencil buffer and
-	// counting up the number of increments that have happened
-#ifndef __PSP2__
-	if ( r_measureOverdraw->integer ) {
-		int i;
-		long sum = 0;
-		unsigned char *stencilReadback;
-
-		stencilReadback = ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight );
-		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencilReadback );
-
-		for ( i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++ ) {
-			sum += stencilReadback[i];
-		}
-
-		backEnd.pc.c_overDraw += sum;
-		ri.Hunk_FreeTempMemory( stencilReadback );
-	}
-#endif
-
 	if ( !glState.finishCalled ) {
 		qglFinish();
 	}
-#ifdef PARANOID
+
 	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
-#endif
+
 	GLimp_EndFrame();
 
 	backEnd.projection2D = qfalse;

@@ -1,68 +1,203 @@
-TARGET		:= vitaVoyager
-TITLE		:= VOYAGERQ3
-GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
+STATIC_LINKING := 0
+AR             := ar
 
-SOURCES  := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
-INCLUDES := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
+ifneq ($(V),1)
+   Q := @
+endif
 
-LIBS = -lSceAppMgr_stub -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
-	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
-	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
-	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \
-	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl \
-	-lssl -lcrypto -lSceSsl_stub
+ifneq ($(SANITIZER),)
+   CFLAGS   := -fsanitize=$(SANITIZER) $(CFLAGS)
+   CXXFLAGS := -fsanitize=$(SANITIZER) $(CXXFLAGS)
+   LDFLAGS  := -fsanitize=$(SANITIZER) $(LDFLAGS)
+endif
 
-CFILES   := $(filter-out code/psp2/psp2_dll_hacks.c,$(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c)))
-CPPFILES   := $(foreach dir,$(CPPSOURCES), $(wildcard $(dir)/*.cpp))
-BINFILES := $(foreach dir,$(DATA), $(wildcard $(dir)/*.bin))
-OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
+ifeq ($(platform),)
+platform = unix
+ifeq ($(shell uname -a),)
+   platform = win
+else ifneq ($(findstring MINGW,$(shell uname -a)),)
+   platform = win
+else ifneq ($(findstring Darwin,$(shell uname -a)),)
+   platform = osx
+else ifneq ($(findstring win,$(shell uname -a)),)
+   platform = win
+endif
+endif
 
-export INCLUDE	:= $(foreach dir,$(INCLUDES),-I$(dir))
+# system platform
+system_platform = unix
+ifeq ($(shell uname -a),)
+	EXE_EXT = .exe
+	system_platform = win
+else ifneq ($(findstring Darwin,$(shell uname -a)),)
+	system_platform = osx
+	arch = intel
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+endif
+else ifneq ($(findstring MINGW,$(shell uname -a)),)
+	system_platform = win
+endif
 
-PREFIX  = arm-vita-eabi
-CC      = $(PREFIX)-gcc
-CXX      = $(PREFIX)-g++
-CFLAGS  = $(INCLUDE) -D__PSP2__ -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE \
-        -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_VORBIS \
-        -DDEFAULT_BASEDIR=\"ux0:/data/voyager\" -DUSE_CURL=1 \
-        -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -DHAVE_VM_COMPILED=true \
-        -mfpu=neon -mcpu=cortex-a9 -fsigned-char -DELITEFORCE \
-        -Wl,-q -O3 -g -ffast-math -fno-short-enums
-CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
-ASFLAGS = $(CFLAGS)
+CORE_DIR    += .
+TARGET_NAME := vitavoyager
+LIBM		    = -lm
 
-all: $(TARGET).vpk
+ifeq ($(ARCHFLAGS),)
+ifeq ($(archs),ppc)
+   ARCHFLAGS = -arch ppc -arch ppc64
+else
+   ARCHFLAGS = -arch i386 -arch x86_64
+endif
+endif
 
-exec-only: eboot.bin
+ifeq ($(platform), osx)
+ifndef ($(NOUNIVERSAL))
+   CXXFLAGS += $(ARCHFLAGS)
+   LFLAGS += $(ARCHFLAGS)
+endif
+endif
 
-$(TARGET).vpk: $(TARGET).velf
-	#make -C code/cgame
-	#cp -f code/cgame/cgame.suprx ./cgamearm.suprx
-	#make -C code/ui
-	#cp -f code/ui/ui.suprx ./uiarm.suprx
-	#make -C code/game
-	#cp -f code/game/qagame.suprx ./qagamearm.suprx
-	vita-make-fself -s $< build/eboot.bin
-	vita-mksfoex -s TITLE_ID=$(TITLE) -d ATTRIBUTE2=12 "$(TARGET)" param.sfo
-	cp -f param.sfo build/sce_sys/param.sfo
+ifeq ($(STATIC_LINKING), 1)
+EXT := a
+endif
 
-	#------------ Comment this if you don't have 7zip ------------------
-	7z a -tzip ./$(TARGET).vpk -r ./build/sce_sys ./build/eboot.bin
-	#-------------------------------------------------------------------
+ifeq ($(platform), unix)
+	EXT ?= so
+   TARGET := $(TARGET_NAME)_libretro.$(EXT)
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+else ifeq ($(platform), linux-portable)
+   TARGET := $(TARGET_NAME)_libretro.$(EXT)
+   fpic := -fPIC -nostdlib
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T
+	LIBM :=
+else ifneq (,$(findstring osx,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro.dylib
+   fpic := -fPIC
+   SHARED := -dynamiclib
+else ifneq (,$(findstring ios,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro_ios.dylib
+	fpic := -fPIC
+	SHARED := -dynamiclib
 
-eboot.bin: $(TARGET).velf
-	vita-make-fself -s $< eboot.bin
-	
-%.velf: %.elf
-	cp $< $<.unstripped.elf
-	$(PREFIX)-strip -g $<
-	vita-elf-create $< $@
+ifeq ($(IOSSDK),)
+   IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
+endif
 
-$(TARGET).elf: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+	DEFINES := -DIOS
+	CC = cc -arch armv7 -isysroot $(IOSSDK)
+ifeq ($(platform),ios9)
+CC     += -miphoneos-version-min=8.0
+CXXFLAGS += -miphoneos-version-min=8.0
+else
+CC     += -miphoneos-version-min=5.0
+CXXFLAGS += -miphoneos-version-min=5.0
+endif
+else ifneq (,$(findstring qnx,$(platform)))
+	TARGET := $(TARGET_NAME)_libretro_qnx.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+else ifeq ($(platform), emscripten)
+   TARGET := $(TARGET_NAME)_libretro_emscripten.bc
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+else ifeq ($(platform), vita)
+   TARGET := $(TARGET_NAME)_vita.a
+   CC = arm-vita-eabi-gcc
+   AR = arm-vita-eabi-ar
+   CXXFLAGS += -Wl,-q -Wall -O3
+	STATIC_LINKING = 1
+else
+   CC = gcc
+   TARGET := $(TARGET_NAME)_libretro.dll
+   SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+endif
+
+LDFLAGS += $(LIBM)
+
+ifeq ($(DEBUG), 1)
+   CFLAGS += -O0 -g -DDEBUG
+   CXXFLAGS += -O0 -g -DDEBUG
+else
+   CFLAGS += -O3
+   CXXFLAGS += -O3
+endif
+
+include Makefile.common
+
+OBJECTS := $(SOURCES_C:.c=.o)
+
+COMPILE_PLATFORM=$(shell uname | sed -e 's/_.*//' | tr '[:upper:]' '[:lower:]' | sed -e 's/\//_/g')
+COMPILE_ARCH=$(shell uname -m | sed -e 's/i.86/x86/' | sed -e 's/^arm.*/arm/')
+
+ifeq ($(COMPILE_PLATFORM),cygwin)
+  PLATFORM=mingw32
+endif
+
+ifndef PLATFORM
+PLATFORM=$(COMPILE_PLATFORM)
+endif
+export PLATFORM
+
+ifeq ($(PLATFORM),mingw32)
+  MINGW=1
+endif
+ifeq ($(PLATFORM),mingw64)
+  MINGW=1
+endif
+
+ifeq ($(COMPILE_ARCH),i86pc)
+  COMPILE_ARCH=x86
+endif
+
+ifeq ($(COMPILE_ARCH),amd64)
+  COMPILE_ARCH=x86_64
+endif
+ifeq ($(COMPILE_ARCH),x64)
+  COMPILE_ARCH=x86_64
+endif
+
+ifeq ($(COMPILE_ARCH),powerpc)
+  COMPILE_ARCH=ppc
+endif
+ifeq ($(COMPILE_ARCH),powerpc64)
+  COMPILE_ARCH=ppc64
+endif
+
+ifeq ($(COMPILE_ARCH),axp)
+  COMPILE_ARCH=alpha
+endif
+
+CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) -DRELEASE -DUSE_ICON -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DELITEFORCE -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -fno-short-enums -fsigned-char
+CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic) -fpermissive
+
+ifeq ($(platform), unix)
+CFLAGS += -std=gnu99
+else
+CFLAGS += -std=c99
+endif
+CFLAGS     += $(INCFLAGS)
+CXXFLAGS   += $(INCFLAGS)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+ifeq ($(STATIC_LINKING), 1)
+	$(AR) rcs $@ $(OBJECTS)
+else
+	@$(if $(Q), $(shell echo echo LD $@),)
+	$(Q)$(CC) $(fpic) $(SHARED) -o $@ $(OBJECTS) $(LDFLAGS)
+endif
+
+%.o: %.c
+	@$(if $(Q), $(shell echo echo CC $<),)
+	$(Q)$(CC) $(CFLAGS) $(fpic) -c -o $@ $<
 
 clean:
-	#@make -C code/cgame clean
-	#@make -C code/ui clean
-	#@make -C code/game clean
-	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf $(TARGET).vpk build/eboot.bin build/sce_sys/param.sfo ./param.sfo
+	rm -f $(OBJECTS) $(TARGET)
+
+.PHONY: clean
+
+print-%:
+	@echo '$*=$($*)'

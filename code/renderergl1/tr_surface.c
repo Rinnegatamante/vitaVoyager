@@ -331,7 +331,7 @@ static void RB_SurfaceBeam( void )
 
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 
-	qglColor3f( 1, 0, 0 );
+	qglColor4f( 1, 0, 0, 1 );
 
 	float *pPos = gVertexBuffer;
 	for ( i = 0; i <= NUM_BEAM_SEGS; i++ ) {
@@ -1625,11 +1625,11 @@ static void RB_SurfaceAxis( void ) {
 		0, 0, 0,
 		0, 0, 16
 	};
-	glEnableClientState(GL_COLOR_ARRAY);
+	qglEnableClientState(GL_COLOR_ARRAY);
 	vglVertexPointer(3, GL_FLOAT, 0, 6, verts);
 	vglColorPointer(4, GL_FLOAT, 0, 6, clrs);
 	vglDrawObjects(GL_LINES, 6, GL_TRUE);
-	glDisableClientState(GL_COLOR_ARRAY);
+	qglDisableClientState(GL_COLOR_ARRAY);
 }
 
 //===========================================================================

@@ -184,9 +184,9 @@ Passing NULL will set the color to white
 void	RE_SetColor( const float *rgba ) {
 	setColorCommand_t	*cmd;
 
-  if ( !tr.registered ) {
-    return;
-  }
+	if ( !tr.registered ) {
+		return;
+	}
 	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
 	if ( !cmd ) {
 		return;
@@ -360,26 +360,8 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		int	err;
 
 		R_IssuePendingRenderCommands();
-		if ((err = qglGetError()) != GL_NO_ERROR)
-			ri.Error(ERR_FATAL, "RE_BeginFrame() - glGetError() failed (0x%x)!", err);
 	}
-#ifndef __PSP2__
-	if (glConfig.stereoEnabled) {
-		if( !(cmd = R_GetCommandBuffer(sizeof(*cmd))) )
-			return;
-			
-		cmd->commandId = RC_DRAW_BUFFER;
-		
-		if ( stereoFrame == STEREO_LEFT ) {
-			cmd->buffer = (int)GL_BACK_LEFT;
-		} else if ( stereoFrame == STEREO_RIGHT ) {
-			cmd->buffer = (int)GL_BACK_RIGHT;
-		} else {
-			ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is enabled, but stereoFrame was %i", stereoFrame );
-		}
-	}
-	else
-#endif
+
 	{
 		if(r_anaglyphMode->integer)
 		{
@@ -388,12 +370,12 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 				// clear both, front and backbuffer.
 				qglColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 				qglClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-#ifndef __PSP2__
-				qglDrawBuffer(GL_FRONT);
-				qglClear(GL_COLOR_BUFFER_BIT);
-				qglDrawBuffer(GL_BACK);
-				qglClear(GL_COLOR_BUFFER_BIT);
-#endif			
+				
+				//->qglDrawBuffer(GL_FRONT);
+				//->qglClear(GL_COLOR_BUFFER_BIT);
+				//->qglDrawBuffer(GL_BACK);
+				//->qglClear(GL_COLOR_BUFFER_BIT);
+				
 				r_anaglyphMode->modified = qfalse;
 			}
 			

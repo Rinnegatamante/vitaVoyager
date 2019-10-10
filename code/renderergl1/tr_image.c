@@ -163,99 +163,25 @@ void R_ImageList_f( void ) {
 
 		switch(image->internalFormat)
 		{
-#ifndef __PSP2__
-			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
-				format = "sDXT1";
-				// 64 bits per 16 pixels, so 4 bits per pixel
-				estSize /= 2;
-				break;
-			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
-				format = "sDXT5";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
-				format = "sBPTC";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT:
-				format = "LATC ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-				format = "DXT1 ";
-				// 64 bits per 16 pixels, so 4 bits per pixel
-				estSize /= 2;
-				break;
-			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-				format = "DXT5 ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
-				format = "BPTC ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_RGB4_S3TC:
-				format = "S3TC ";
-				// same as DXT1?
-				estSize /= 2;
-				break;
-			case GL_RGBA4:
-			case GL_RGBA8:
-#endif
 			case GL_RGBA:
 				format = "RGBA ";
 				// 4 bytes per pixel
 				estSize *= 4;
 				break;
-#ifndef __PSP2__
-			case GL_LUMINANCE8:
-#endif
 			case GL_LUMINANCE:
 				format = "L    ";
 				// 1 byte per pixel?
 				break;
-#ifndef __PSP2__
-			case GL_RGB5:
-			case GL_RGB8:
-#endif
 			case GL_RGB:
 				format = "RGB  ";
 				// 3 bytes per pixel?
 				estSize *= 3;
 				break;
-#ifndef __PSP2__
-			case GL_LUMINANCE8_ALPHA8:
-#endif
 			case GL_LUMINANCE_ALPHA:
 				format = "LA   ";
 				// 2 bytes per pixel?
 				estSize *= 2;
 				break;
-#ifndef __PSP2__
-			case GL_SRGB_EXT:
-			case GL_SRGB8_EXT:
-				format = "sRGB ";
-				// 3 bytes per pixel?
-				estSize *= 3;
-				break;
-			case GL_SRGB_ALPHA_EXT:
-			case GL_SRGB8_ALPHA8_EXT:
-				format = "sRGBA";
-				// 4 bytes per pixel?
-				estSize *= 4;
-				break;
-			case GL_SLUMINANCE_EXT:
-			case GL_SLUMINANCE8_EXT:
-				format = "sL   ";
-				// 1 byte per pixel?
-				break;
-			case GL_SLUMINANCE_ALPHA_EXT:
-			case GL_SLUMINANCE8_ALPHA8_EXT:
-				format = "sLA  ";
-				// 2 byte per pixel?
-				estSize *= 2;
-				break;
-#endif
 			default:
 				format = "RGBA ";
 				estSize *= 4;
@@ -757,28 +683,21 @@ static void Upload32( unsigned *data,
 
 	if (mipmap)
 	{
-		glGenerateMipmap(GL_TEXTURE_2D);
+#ifndef URBANTERROR
+		qglGenerateMipmap(GL_TEXTURE_2D);
+#endif
 	}
 done:
 
 	if (mipmap)
 	{
-#ifndef __PSP2__
-		if ( textureFilterAnisotropic )
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-					(GLint)Com_Clamp( 1, maxAnisotropy, r_ext_max_anisotropy->integer ) );
-#endif
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 	else
 	{
-#ifndef __PSP2__
-		if ( textureFilterAnisotropic )
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 );
-#endif
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 
 	GL_CheckErrors();
@@ -827,24 +746,21 @@ image_t *R_CreateImage( const char *name, byte *pic, int width, int height,
 	image->width = width;
 	image->height = height;
 	if (flags & IMGFLAG_CLAMPTOEDGE)
-		glWrapClampMode = GL_CLAMP_TO_EDGE;
+		glWrapClampMode = GL_CLAMP;
 	else
 		glWrapClampMode = GL_REPEAT;
 
 	// lightmaps are always allocated on TMU 1
-#ifndef __PSP2__
-	if ( qglActiveTextureARB && isLightmap ) {
-		image->TMU = 1;
-	} else {
-#endif
+	//->if ( qglActiveTextureARB && isLightmap ) {
+	//->	image->TMU = 1;
+	//->} else {
 		image->TMU = 0;
-#ifndef __PSP2__
-	}
+	//->}
 
-	if ( qglActiveTextureARB ) {
-		GL_SelectTexture( image->TMU );
-	}
-#endif
+	//->if ( qglActiveTextureARB ) {
+	//->	GL_SelectTexture( image->TMU );
+	//->}
+
 	GL_Bind(image);
 
 	Upload32( (unsigned *)pic, image->width, image->height, 
@@ -1335,18 +1251,14 @@ void R_DeleteTextures( void ) {
 	tr.numImages = 0;
 
 	Com_Memset( glState.currenttextures, 0, sizeof( glState.currenttextures ) );
-#ifndef __PSP2__
-	if ( qglActiveTextureARB ) {
-		GL_SelectTexture( 1 );
+	//->if ( qglActiveTextureARB ) {
+	//->	GL_SelectTexture( 1 );
+	//->	qglBindTexture( GL_TEXTURE_2D, 0 );
+	//->	GL_SelectTexture( 0 );
+	//->	qglBindTexture( GL_TEXTURE_2D, 0 );
+	//->} else {
 		qglBindTexture( GL_TEXTURE_2D, 0 );
-		GL_SelectTexture( 0 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-	} else {
-#endif
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-#ifndef __PSP2__
-	}
-#endif
+	//->}
 }
 
 /*

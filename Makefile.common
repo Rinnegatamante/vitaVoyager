@@ -1,0 +1,43 @@
+ifeq ($(LIBRETRO_COMM_DIR),)
+LIBRETRO_COMM_DIR  = $(CORE_DIR)/code/libretro-common
+endif
+SOURCES    := 	$(CORE_DIR)/code/renderercommon \
+					$(CORE_DIR)/code/qcommon \
+					$(CORE_DIR)/code/botlib \
+					$(CORE_DIR)/code/client \
+					$(CORE_DIR)/code/server \
+					$(CORE_DIR)/code/renderergl1 \
+					$(CORE_DIR)/code/libretro \
+					$(CORE_DIR)/code/sys \
+					$(CORE_DIR)/code/jpeg-8c \
+					$(CORE_DIR)/code/zlib
+INCLUDES   :=  $(CORE_DIR)/code/renderercommon \
+					$(CORE_DIR)/code/qcommon \
+					$(CORE_DIR)/code/botlib \
+					$(CORE_DIR)/code/client \
+					$(CORE_DIR)/code/server \
+					$(CORE_DIR)/code/renderergl1 \
+					$(CORE_DIR)/code/libretro \
+					$(CORE_DIR)/code/sys \
+				   $(CORE_DIR)/code/jpeg-8c \
+					$(LIBRETRO_COMM_DIR)/include \
+					$(CORE_DIR)/code/zlib
+
+INCFLAGS   := $(foreach dir,$(INCLUDES), -I$(dir))
+
+SOURCES_C  := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c))
+
+SYSTEM = 	$(LIBRETRO_COMM_DIR)/file/retro_dirent.c \
+				$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
+				$(LIBRETRO_COMM_DIR)/string/stdstring.c \
+				$(LIBRETRO_COMM_DIR)/file/file_path.c \
+				$(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
+				$(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+				$(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
+				$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+				$(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c \
+				$(LIBRETRO_COMM_DIR)/features/features_cpu.c \
+				$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
+				$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
+
+SOURCES_C  += $(SYSTEM)

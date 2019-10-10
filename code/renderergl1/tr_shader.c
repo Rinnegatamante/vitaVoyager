@@ -1821,13 +1821,7 @@ static qboolean CollapseMultitexture( void ) {
 	int abits, bbits;
 	int i;
 	textureBundle_t tmpBundle;
-#ifndef __PSP2__
-	if ( !qglActiveTextureARB ) {
-#endif
 		return qfalse;
-#ifndef __PSP2__
-	}
-#endif
 	// make sure both stages are active
 	if ( !stages[0].active || !stages[1].active ) {
 		return qfalse;
