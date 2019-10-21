@@ -38,6 +38,8 @@ SYSTEM = 	$(LIBRETRO_COMM_DIR)/file/retro_dirent.c \
 				$(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c \
 				$(LIBRETRO_COMM_DIR)/features/features_cpu.c \
 				$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
-				$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
+				$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c \
+				$(LIBRETRO_COMM_DIR)/net/net_compat.c \
+				$(LIBRETRO_COMM_DIR)/net/net_socket.c
 
 SOURCES_C  += $(SYSTEM)

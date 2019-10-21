@@ -112,6 +112,7 @@ else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+   LDFLAGS += -lwsock32 -lWS2_32
 endif
 
 LDFLAGS += $(LIBM)
