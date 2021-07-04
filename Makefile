@@ -5,7 +5,7 @@ GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 SOURCES  := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
 INCLUDES := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
 
-LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lSceAppMgr_stub \
+LIBS = -lvitaGL -lvitashark -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lSceAppMgr_stub \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \

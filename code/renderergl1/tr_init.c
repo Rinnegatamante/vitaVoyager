@@ -857,15 +857,12 @@ void GL_SetDefaultState( void )
 
 	// initialize downstream texture unit if we're running
 	// in a multitexture environment
-#ifndef __PSP2__
-	if ( qglActiveTextureARB ) {
-		GL_SelectTexture( 1 );
-		GL_TextureMode( r_textureMode->string );
-		GL_TexEnv( GL_MODULATE );
-		qglDisable( GL_TEXTURE_2D );
-		GL_SelectTexture( 0 );
-	}
-#endif
+	GL_SelectTexture( 1 );
+	GL_TextureMode( r_textureMode->string );
+	GL_TexEnv( GL_MODULATE );
+	qglDisable( GL_TEXTURE_2D );
+	GL_SelectTexture( 0 );
+
 	qglEnable(GL_TEXTURE_2D);
 	GL_TextureMode( r_textureMode->string );
 	GL_TexEnv( GL_MODULATE );
@@ -1012,7 +1009,7 @@ void GfxInfo_f( void )
 	ri.Printf( PRINT_ALL, "texturemode: %s\n", r_textureMode->string );
 	ri.Printf( PRINT_ALL, "picmip: %d\n", r_picmip->integer );
 	ri.Printf( PRINT_ALL, "texture bits: %d\n", r_texturebits->integer );
-	ri.Printf( PRINT_ALL, "multitexture: %s\n", enablestrings[/*qglActiveTextureARB != */0] );
+	ri.Printf( PRINT_ALL, "multitexture: %s\n", enablestrings[/*qglActiveTextureARB != */1] );
 	ri.Printf( PRINT_ALL, "compiled vertex arrays: %s\n", enablestrings[/*qglLockArraysEXT !=*/ 0 ] );
 	ri.Printf( PRINT_ALL, "texenv add: %s\n", enablestrings[glConfig.textureEnvAddAvailable != 0] );
 	ri.Printf( PRINT_ALL, "compressed textures: %s\n", enablestrings[glConfig.textureCompression!=TC_NONE] );
@@ -1049,7 +1046,7 @@ void R_Register( void )
 	//
 	r_allowExtensions = ri.Cvar_Get( "r_allowExtensions", "1", CVAR_ARCHIVE | CVAR_LATCH );
 #ifdef ELITEFORCE
-	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compress_textures", "0", CVAR_ARCHIVE | CVAR_LATCH );
+	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compress_textures", "1", CVAR_ARCHIVE | CVAR_LATCH );
 #else
 	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compressed_textures", "0", CVAR_ARCHIVE | CVAR_LATCH );
 #endif
