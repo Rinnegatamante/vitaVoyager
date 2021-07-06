@@ -581,7 +581,8 @@ static void Upload32( unsigned *data,
 	byte		*scan;
 	GLenum		internalFormat = GL_RGB;
 	float		rMax = 0, gMax = 0, bMax = 0;
-
+	GLboolean compressed = GL_FALSE;
+	
 	//
 	// convert to exact power of 2 sizes
 	//
@@ -701,6 +702,7 @@ static void Upload32( unsigned *data,
 			else if (allowCompression)
 			{
 				internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				compressed = GL_TRUE;
 			}
 			else
 			{
@@ -716,6 +718,7 @@ static void Upload32( unsigned *data,
 			else if (allowCompression)
 			{
 				internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				compressed = GL_TRUE;
 			}
 			else
 			{
@@ -765,26 +768,28 @@ static void Upload32( unsigned *data,
 
 	if (mipmap)
 	{
-		int		miplevel;
+		if (compressed) {
+			int		miplevel;
 
-		miplevel = 0;
-		while (scaled_width > 1 || scaled_height > 1)
-		{
-			R_MipMap( (byte *)scaledBuffer, scaled_width, scaled_height );
-			scaled_width >>= 1;
-			scaled_height >>= 1;
-			if (scaled_width < 1)
-				scaled_width = 1;
-			if (scaled_height < 1)
-				scaled_height = 1;
-			miplevel++;
+			miplevel = 0;
+			while (scaled_width > 4 && scaled_height > 4)
+			{
+				R_MipMap( (byte *)scaledBuffer, scaled_width, scaled_height );
+				scaled_width >>= 1;
+				scaled_height >>= 1;
+				if (scaled_width < 1)
+					scaled_width = 1;
+				if (scaled_height < 1)
+					scaled_height = 1;
+				miplevel++;
 
-			if ( r_colorMipLevels->integer ) {
-				R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
+				if ( r_colorMipLevels->integer ) {
+					R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
+				}
+
+				qglTexImage2D (GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
 			}
-
-			qglTexImage2D (GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
-		}
+		} else glGenerateMipmap(GL_TEXTURE_2D);
 	}
 done:
 
