@@ -410,6 +410,11 @@ extern	cvar_t	*j_forward_axis;
 extern	cvar_t	*j_side_axis;
 extern	cvar_t	*j_up_axis;
 
+extern cvar_t *cl_gyroscope;
+extern cvar_t *cl_gyro_h_sensitivity;
+extern cvar_t *cl_gyro_v_sensitivity;
+extern cvar_t *cl_analog_slowdown;
+
 extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_aviFrameRate;
 extern	cvar_t	*cl_aviMotionJpeg;
