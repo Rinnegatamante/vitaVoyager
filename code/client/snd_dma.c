@@ -584,6 +584,14 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 	}
 
 	ch = s_channels;
+	
+	// leilei - HACK - check if this sound is alredy playing and kill it, reduces distortion/awful firing sounds
+	for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) {		
+		if (ch->entnum == entityNum && ch->thesfx == sfx) {
+			S_ChannelFree(ch);
+		}
+	}
+	
 	inplay = 0;
 	for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) {		
 		if (ch->entnum == entityNum && ch->thesfx == sfx) {
