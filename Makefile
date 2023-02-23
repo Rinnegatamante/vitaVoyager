@@ -6,11 +6,11 @@ SOURCES  := code/renderercommon code/qcommon code/botlib code/client code/server
 INCLUDES := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
 
 LIBS = -lvitaGL -lvitashark -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lSceAppMgr_stub \
-	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
+	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub -lSceShaccCgExt -ltaihen_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \
 	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl \
-	-lssl -lcrypto -lSceSsl_stub -lmathneon -lvitashark -lSceShaccCg_stub
+	-lssl -lcrypto -lSceSsl_stub -lmathneon -lvitashark -lSceShaccCg_stub -lSceKernelDmacMgr_stub
 	
 
 CFILES   := $(filter-out code/psp2/psp2_dll_hacks.c,$(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c)))
@@ -24,8 +24,7 @@ PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 CFLAGS  = $(INCLUDE) -D__PSP2__ -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE \
-        -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_VORBIS \
-        -DDEFAULT_BASEDIR=\"ux0:/data/voyager\" -DUSE_CURL=1 \
+        -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_VORBIS -DUSE_CURL=1 \
         -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -DHAVE_VM_COMPILED=true \
         -mfpu=neon -mcpu=cortex-a9 -fsigned-char -DELITEFORCE \
         -Wl,-q,--no-enum-size-warning -O3 -g -ffast-math -fno-short-enums

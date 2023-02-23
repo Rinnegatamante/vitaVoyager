@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+#define DEFAULT_BASEDIR "ux0:data/voyager"
+
 // Require a minimum version of SDL
 #define MINSDL_MAJOR 2
 #define MINSDL_MINOR 0
