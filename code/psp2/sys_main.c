@@ -496,9 +496,8 @@ int main(int argc, char **argv) {
 	SceUID main_thread = sceKernelCreateThread("id Tech 3", idtech_main, 0x40, 0x200000, 0, 0, NULL);
 	if (main_thread >= 0){
 		sceKernelStartThread(main_thread, 0, NULL);
-		sceKernelWaitThreadEnd(main_thread, NULL, NULL);
 	}
-	return 0;
 	
+	return sceKernelExitDeleteThread(0);
 }
 
