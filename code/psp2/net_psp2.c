@@ -43,9 +43,10 @@ typedef int	ioctlarg_t;
 #include <psp2/net/net.h>
 #include <sys/select.h>
 
+/*
 const char *gai_strerror(int errcode) {
     return "";
-}
+}*/
 
 static qboolean usingSocks = qfalse;
 static int networkingEnabled = 0;
