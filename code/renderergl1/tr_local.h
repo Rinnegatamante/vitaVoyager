@@ -31,6 +31,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_common.h"
 #include "../renderercommon/iqm.h"
 #include "../renderercommon/qgl.h"
+#ifdef __PSP2__
+#include <psp2/kernel/clib.h>
+#endif
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
 typedef uint16_t glIndex_t;

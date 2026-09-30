@@ -5,12 +5,15 @@ GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 SOURCES  := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
 INCLUDES := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/psp2 code/sys
 
-LIBS = -lvitaGL -lvitashark -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lSceAppMgr_stub \
+PKG_CONFIG ?= arm-vita-eabi-pkg-config
+CURL_LIBS := $(shell $(PKG_CONFIG) --static --libs libcurl)
+
+LIBS = -Wl,--whole-archive -lSceSysmodule_stub -Wl,--no-whole-archive -Wl,--start-group $(CURL_LIBS) -lvitaGL -lvitashark -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lSceAppMgr_stub \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub -lSceShaccCgExt -ltaihen_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
-	-Wl,--whole-archive -lSceSysmodule_stub -Wl,--no-whole-archive -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \
+	-lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \
 	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl \
-	-lssl -lcrypto -lSceSsl_stub -lmathneon -lvitashark -lSceShaccCg_stub -lSceKernelDmacMgr_stub
+	-lssl -lcrypto -lSceSsl_stub -lmathneon -lvitashark -lSceShaccCg_stub -lSceKernelDmacMgr_stub -Wl,--end-group
 	
 
 CFILES   := $(filter-out code/psp2/psp2_dll_hacks.c,$(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c)))
@@ -54,7 +57,7 @@ eboot.bin: $(TARGET).velf
 	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) -pthread $^ $(LDFLAGS) $(LIBS) -o $@
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf $(TARGET).vpk build/eboot.bin ./param.sfo
