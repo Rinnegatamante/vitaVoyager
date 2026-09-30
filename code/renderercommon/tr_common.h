@@ -130,6 +130,7 @@ image_t     *R_FindImageFile( const char *name, imgType_t type, imgFlags_t flags
 image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgType_t type, imgFlags_t flags, int internalFormat );
 
 void R_IssuePendingRenderCommands( void );
+void R_InitCommandBuffers(void);
 qhandle_t		 RE_RegisterShaderLightMap( const char *name, int lightmapIndex );
 qhandle_t		 RE_RegisterShader( const char *name );
 qhandle_t		 RE_RegisterShaderNoMip( const char *name );
@@ -168,6 +169,10 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 void		GLimp_Init( qboolean fixedFunction );
 void		GLimp_Shutdown( void );
 void		GLimp_EndFrame( void );
+void *GLimp_RendererSleep(void);
+void GLimp_FrontEndSleep(void);
+void GLimp_WakeRenderer(void *data);
+qboolean GLimp_SpawnRenderThread(void (*function)(void));
 
 void		GLimp_LogComment( char *comment );
 void		GLimp_Minimize(void);

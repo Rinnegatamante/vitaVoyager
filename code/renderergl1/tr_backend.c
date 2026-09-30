@@ -794,7 +794,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	vglVertexPointer(3, GL_FLOAT, 0, 4, vertices);
 	vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoords);
-	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4);
 }
 
 void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
@@ -1020,7 +1020,7 @@ void RB_ShowImages( void ) {
 	
 		vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
 		vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoord);
-		vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+		vglDrawObjects(GL_TRIANGLE_FAN, 4);
 	}
 
 	qglFinish();
